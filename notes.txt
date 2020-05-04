@@ -1,0 +1,3 @@
+ganti id jadi spesifik 
+produt_image id belum AI vvv
+foreign key product on stock, images, category (DELETE) vvv
