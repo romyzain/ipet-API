@@ -7,41 +7,44 @@ module.exports = {
 		// filter queries
 		let { search, minPrice, maxPrice, sortBy, category, offset } = req.query
 		// get initial products with stock
-		// let sql = `select p.id as productId, productName, price, invStock, appStock from products p join stock s on p.id = s.productId where active = 1`
 		let sql = `select 
 		p.id as productId, 
 		productName, 
 		price, 
 		invStock, 
-		appStock, 
+		appStock,
 		IfNull(views, 0) as views, 
 		IfNull(totalPurchased, 0) as totalPurchased,
 		max(case when rn = 1 then category end) category1,
 		max(case when rn = 2 then category end) category2,
 		max(case when rn = 3 then category end) category3
-							from products p
-							left join (
-									select productId, sum(qty)  as totalPurchased
-											from cart
-											group by productId
-							) cart on p.id = cart.productId
-							left join stock s on p.id = s.productId
-							left join (
-									select productId, count(id) as views
-											from product_view
-											group by productId
-							) product_view on p.id = product_view.productId
-							left join (
-									select 
-										prod.id,
-										active,
-										c.category,
-										row_number() over(partition by prod.id order by c.id) rn
-									from products prod
-									join product_category pc on pc.productId = prod.id
-									join category c on c.id = pc.categoryId
-							) as pivot on pivot.id = p.id
-							where p.active = 1 `
+			from products p
+			left join (
+				select p.id as productId, sum(qty) as totalPurchased
+					from transaction_item ti 
+					join transaction t on ti.transactionId = t.id 
+					join cart c on c.id = ti.cartId 
+					join products p on p.id = c.productId 
+					where approval = 1 
+					group by p.id
+			) cart on p.id = cart.productId
+			left join stock s on p.id = s.productId
+			left join (
+					select productId, count(id) as views
+							from product_view
+							group by productId
+			) product_view on p.id = product_view.productId
+			left join (
+					select 
+						prod.id,
+						active,
+						c.category,
+						row_number() over(partition by prod.id order by c.id) rn
+					from products prod
+					join product_category pc on pc.productId = prod.id
+					join category c on c.id = pc.categoryId
+			) as pivot on pivot.id = p.id
+			where p.active = 1 `
 
 		if (search || minPrice || maxPrice) {
 			if (search) sql += ` and productName like '%${req.query.search}%'`
@@ -68,7 +71,6 @@ module.exports = {
 			if (offset >= 0) {
 				sql += ` limit 5 offset ${offset}`
 			}
-			console.log(sql)
 			let results = await query(sql)
 			// join images
 			for (i = 0; i < results.length; i++) {
@@ -112,8 +114,8 @@ module.exports = {
 					message: err.message,
 				})
 			}
-			let { productName, price, invStock, appStock, category1, category2, category3 } = req.body
-			let sql = `insert into products (productName, price) values ('${productName}', ${price})`
+			let { productName, price, productDescription, invStock, appStock, category1, category2, category3 } = req.body
+			let sql = `insert into products (productName, price, productDescription) values ('${productName}', ${price}, '${productDescription}')`
 			try {
 				// add new product
 				let insert = await query(sql)
@@ -122,7 +124,7 @@ module.exports = {
 				await query(sql)
 				// add 5 images to product_image
 				req.files = [req.files.image1, req.files.image2, req.files.image3, req.files.image4, req.files.image5]
-				req.files.forEach(async (img) => {
+				for(const img of req.files){
 					if (img) {
 						const imagePath = img ? `${path}/${img[0].filename}` : null
 						sql = `insert into product_image (imagePath, productId) values ('${imagePath}', ${insert.insertId})`
@@ -136,10 +138,11 @@ module.exports = {
 							})
 						}
 					}
-				})
+				}
+
 				// add categories to product_category
 				let category = [category1, category2, category3]
-				category.forEach(async (val) => {
+				for(const val of category){
 					if (val) {
 						sql = `insert into product_category (categoryId, productId) values (${val}, ${insert.insertId})`
 						try {
@@ -151,8 +154,8 @@ module.exports = {
 							})
 						}
 					}
-				})
-				res.status(200).send({
+				}
+				res.status(201).send({
 					status: 'Success',
 					data: insert,
 					message: 'Successfully added new product',
@@ -172,9 +175,9 @@ module.exports = {
 		try {
 			let results = await query(sql)
 			let oldImagePath = []
-			results.forEach((image) => {
+			for(const image of results){
 				oldImagePath.push(image.imagePath)
-			})
+			}
 			sql = `select * from product_category where productId = '${id}'`
 			let categories = await query(sql)
 
@@ -194,8 +197,8 @@ module.exports = {
 						message: err.message,
 					})
 				}
-				let { productName, price, invStock, appStock, category1, category2, category3, deleteImageArr } = req.body
-				let sql = `update products set productName = '${productName}', price = ${parseInt(price)} where id = ${id};`
+				let { productName, price, productDescription, invStock, appStock, category1, category2, category3, deleteImageArr } = req.body
+				let sql = `update products set productName = '${productName}', price = ${parseInt(price)}, productDescription = '${productDescription}' where id = ${id};`
 				try {
 					// update product table
 					await query(sql)
@@ -204,7 +207,7 @@ module.exports = {
 					await query(sql)
 					// update product image
 					req.files = [req.files.image1, req.files.image2, req.files.image3, req.files.image4, req.files.image5]
-					req.files.forEach(async (img, i) => {
+					for(const [i, img] of req.files.entries()){
 						if (img) {
 							const imagePath = img ? `${path}/${img[0].filename}` : oldImagePath[i]
 							try {
@@ -227,10 +230,10 @@ module.exports = {
 								})
 							}
 						}
-					})
+					}
 					// update category table
 					let category = [parseInt(category1), parseInt(category2), parseInt(category3)]
-					category.forEach(async (val, i) => {
+					for(const [i, val] of category.entries()){
 						try {
 							if (val) {
 								if (categories[i] && val !== categories[i].categoryId) {
@@ -251,10 +254,10 @@ module.exports = {
 								message: err.message,
 							})
 						}
-					})
+					}
 
 					// delete image
-					deleteImageArr.forEach((id, index) => {
+					for(const[index, id] of deleteImageArr.entries()){
 						if (id !== 'false') {
 							console.log('masuk delete', id)
 							db.query(`delete from product_image where id = ${id}`, (err, results) => {
@@ -267,9 +270,9 @@ module.exports = {
 								fs.unlinkSync(`./public${oldImagePath[index]}`)
 							})
 						}
-					})
+					}
 
-					res.status(200).send({
+					res.status(201).send({
 						status: 'Success',
 						data: `Successfully updated product with the id of ${id}`,
 					})
@@ -289,24 +292,7 @@ module.exports = {
 		}
 	},
 	deleteProduct: async (req, res) => {
-		// let sql = `select * from product_image where productId = ${req.params.id}`
-		// try {
-		// 	let results = await query(sql)
-		// 	results.forEach((img) => {
-		// 		fs.unlinkSync(`./public${img.imagePath}`)
-		// 	})
-		// 	sql = `delete from products where id = ${req.params.id}`
-		// 	await query(sql)
-		// 	res.status(200).send({
-		// 		status: 'Success',
-		// 		message: `Successfully delete product with the id of ${req.params.id}`,
-		// 	})
-		// } catch (err) {
-		// 	res.status(500).send({
-		// 		status: 'Failed',
-		// 		message: err.message,
-		// 	})
-		// }
+
 		let sql = `update products set active = 0 where id = ${req.params.id}`
 		try {
 			await query(sql)
@@ -322,7 +308,7 @@ module.exports = {
 		}
 	},
 	getOneProduct: async (req, res) => {
-		let sql = `select p.id as productId, productName, price, invStock, appStock, active from products p join stock s on p.id = s.productId where p.id = ${req.params.id}`
+		let sql = `select p.id as productId, productName, price, invStock, appStock, active, productDescription from products p join stock s on p.id = s.productId where p.id = ${req.params.id}`
 		try {
 			let result = await query(sql)
 			sql = `select id as productImageId, imagePath from product_image where productId = ${result[0].productId}`
@@ -365,7 +351,7 @@ module.exports = {
 		let sql = `insert into category (category) values ('${req.body.category}')`
 		try {
 			let insert = await query(sql)
-			res.status(200).send({
+			res.status(201).send({
 				status: 'Success',
 				data: insert,
 				message: 'Successfully added new category',

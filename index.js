@@ -15,20 +15,14 @@ app.get('/', (req, res) => {
     res.status(200).send('<h1>Welcome to iPet API</h1>')
 })
 
-app.get('/test', (req, res) => {
-    let sql = `select * from products`
-
-    db.query(sql, (err, results) => {
-        if (err) {
-            return res.status(500).send(err.message)
-        }
-        res.status(200).send(results)
-    })
-})
-
 const {
-    manageProductRouter
+    manageProductRouter,
+    transactionStatusRouter,
+    reportRouter
 } = require('./router')
+
 app.use('/manage-product', manageProductRouter)
+app.use('/transaction-status', transactionStatusRouter)
+app.use('/report', reportRouter)
 
 app.listen(port, () => console.log(`API Active at Port ${port}`))

@@ -2,11 +2,10 @@ const mysql = require('mysql')
 const util = require('util')
 
 // const db = mysql.createConnection({
-//     host : 'localhost',
+//     socketPath : '/cloudsql/awesome-ripsaw-273111:asia-southeast2:ipet-mysql',
 //     user : 'root',
-//     password : 'bi5miLLah',
+//     password : 'xCfF9ozOe4j1xPa3',
 //     database : 'ipet',
-//     port : 3306
 // })
 
 const db = mysql.createConnection({
