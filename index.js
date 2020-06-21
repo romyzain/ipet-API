@@ -27,8 +27,10 @@ app.get('/test', (req, res) => {
 })
 
 const {
-    manageProductRouter
+    manageProductRouter,
+    userRouter
 } = require('./router')
 app.use('/manage-product', manageProductRouter)
+app.use('/users', userRouter)
 
 app.listen(port, () => console.log(`API Active at Port ${port}`))

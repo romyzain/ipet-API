@@ -11,7 +11,7 @@ const util = require('util')
 
 const db = mysql.createConnection({
     host : 'localhost',
-    user : 'shadiq',
+    user : 'artharf',
     password : 'root',
     database : 'ipet',
     port : 3306
