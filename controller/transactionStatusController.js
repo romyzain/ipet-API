@@ -50,8 +50,8 @@ const htmlToPdf = async (data) => {
 			const page = await browser.newPage()
 			const content = await compile('receipt-pdf/html', data)
 			const randomNum = Math.floor(Math.random() * 10000) + `${Date.now()}`
-			await fs.writeFile(`${process.cwd()}/temp/${randomNum}.html`, content)
-			const tempFilePath = path.join(process.cwd(), `/temp/${randomNum}.html`)
+			await fs.writeFile(`${process.cwd()}/${randomNum}.html`, content)
+			const tempFilePath = path.join(process.cwd(), `/${randomNum}.html`)
 			await page.goto(`file:${tempFilePath}`, { waitUntil: 'networkidle0' })
 			await page.pdf({
 				path: path.join(process.cwd(), `/public/receipt/${randomNum}.pdf`),
@@ -118,7 +118,7 @@ module.exports = {
 			let transaction = await query(sql)
 
 			// fetch cart with products
-			sql = `select ti.cartid, ti.transactionId, c.productId, qty, productName, price, invStock, appStock, subTotal
+			sql = `select ti.cartid, ti.transactionId, c.productId, qty, productName, price, invStock, appStock
 			from transaction_item ti 
 			join cart c on ti.cartId = c.id 
 			join products p on c.productId = p.id 
@@ -166,6 +166,7 @@ module.exports = {
 					let newStock = cartItem.invStock - cartItem.qty
 					sql = `update stock set invStock = '${newStock}' where productId = '${cartItem.productId}'`
 					await query(sql)
+					cartItem.subTotal = cartItem.qty * cartItem.price
 				}
 				data[0].API_URL = API_URL
 				let pdf = await htmlToPdf(data[0])
