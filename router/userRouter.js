@@ -17,7 +17,10 @@ const {
     fetchAllUsers,
     hexPass,
     banUser,
-    unbanUser
+    unbanUser,
+    addPhone,
+    deletePhone,
+    editPhone
 } = userController;
 
 
@@ -35,7 +38,11 @@ router.patch('/changePassword/:id', changePassword);
 router.get('/fetchAllUsers', fetchAllUsers);
 router.patch('/hexPass', auth, hexPass);
 router.patch('/banUser/:id', banUser);
-router.patch('/unbanUser/:id', unbanUser)
+router.patch('/unbanUser/:id', unbanUser);
+router.patch('/editPhone/:id', editPhone);
+router.delete('/deletePhone/:id', deletePhone);
+router.post('/addPhone', addPhone)
+
 
 
 module.exports = router;

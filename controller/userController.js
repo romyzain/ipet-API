@@ -37,7 +37,7 @@ module.exports = {
                            return res.status(500).send(err.message)
                         }
                         let token = createJWTToken({...results[0]})
-                        console.log(token)
+                        // console.log(token)
                         res.status(200).send({
                             status : 'Success',
                             data : {
@@ -61,9 +61,9 @@ module.exports = {
                 return res.status(500).send(err.message)
             }
             if(results.length !== 0){
-                console.log(results[0])
+                // console.log(results[0])
                 let token = createJWTToken({...results[0]})
-                console.log(token)
+                // console.log(token)
 
                 res.status(200).send({
                     status : 'Success',
@@ -82,7 +82,7 @@ module.exports = {
         })
     },
     keepLogin : (req,res) => {
-        console.log(req)
+        // console.log(req)
         res.status(200).send({
             status : 'Success',
             data : {
@@ -132,7 +132,7 @@ module.exports = {
                 const { image } = req.files;
                 const { id } = req.params;
                 const profilePicture = image ? `${path}/${image[0].filename}` : null
-                console.log(image)
+                // console.log(image)
                 let sql = `select profilePicture from users where id = ${id}`
                 let oldPicture = await db.query(sql)
 
@@ -231,6 +231,7 @@ module.exports = {
             })
         }
         catch(err){
+            console.log(err)
             res.status(500).send(err.message)
         }
     },
@@ -246,6 +247,7 @@ module.exports = {
             })
         }
         catch(err){
+            console.log(err)
             res.status(500).send(err.message)
         }
     },
@@ -313,6 +315,7 @@ module.exports = {
         }
     },
     banUser : async(req, res) => {
+        // console.log('banUser')
         let { id } = req.params
         let sql = `UPDATE users set status = 1 WHERE id=${id}`;
         try{
@@ -323,10 +326,12 @@ module.exports = {
             })
         }
         catch(err){
+            console.log(err)
             res.status(500).send(err.message)
         }
     },
     unbanUser : async(req, res) => {
+        // console.log('unbanUser')
         let { id } = req.params
         let sql = `UPDATE users set status = 0 WHERE id=${id}`;
         try{
@@ -334,6 +339,51 @@ module.exports = {
             res.status(201).send({
                 status : 'Unban',
                 message : 'Users just got unbanned' 
+            })
+        }
+        catch(err){
+            console.log(err)
+            res.status(500).send(err.message)
+        }
+    },
+    addPhone : async(req,res) => {
+        let { phoneNumber, userId } = req.body;
+        let sql = `INSERT INTO phone_numbers (phoneNumber, userId) values("${phoneNumber}","${userId}")`;
+        try{
+            let respond = await db.query(sql);
+            res.status(200).send({
+                status : "created",
+                message : "Data has been created"
+            })
+        }
+        catch(err){
+            console.log(err)
+            res.status(500).send(err.message)
+        }
+    },
+    deletePhone : async(req,res) => {
+        let { id } = req.params;
+        let sql = `DELETE FROM phone_numbers WHERE id=${id}`;
+        try{
+            let respond = await db.query(sql);
+            res.status(201).send({
+                status : 'deleted',
+                message : 'Data Deleted!' 
+            })
+        }
+        catch(err){
+            res.status(500).send(err.message)
+        }
+    },
+    editPhone : async(req,res) => {
+        let { phoneNumber } = req.body;
+        let { id } = req.params;
+        let sql = `UPDATE phone_numbers set phoneNumber= '${phoneNumber}' WHERE id= ${id}`;
+        try{
+            let respond = await db.query(sql);
+            res.status(201).send({
+                status : 'edited',
+                message : 'Data Edited!' 
             })
         }
         catch(err){
