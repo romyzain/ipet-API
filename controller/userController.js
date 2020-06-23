@@ -73,6 +73,16 @@ module.exports = {
 				message: err.message,
 			})
 		}
+		try{
+			if(checkUsername[0].status){
+				throw new Error('You Have Been Banned!')
+			}
+		}catch(err){
+			return res.status(404).send({
+				status: 'Error',
+				message: err.message,
+			})
+		}
 		let hashPassword = Crypto.createHmac('sha256', 'kuncirahasia').update(password).digest('hex')
 		let sql = `select id, username, roleId, email, password, verified from users where username = '${username}' and password = '${hashPassword}'`
 		db.query(sql, (err, results) => {
