@@ -17,7 +17,8 @@ const {
     fetchAllUsers,
     hexPass,
     banUser,
-    unbanUser
+    unbanUser,
+    forgetPassword
 } = userController;
 
 
@@ -25,6 +26,7 @@ router.post('/register', Register);
 router.post('/login', Login);
 router.post('/keep-login', auth ,keepLogin);
 router.post('/verification', emailVerification);
+router.post('/forget-password', forgetPassword)
 router.patch('/changePicture/:id', auth, changePicture);
 router.get('/fetchDataUsers/:id', fetchDataUsers);
 router.get('/fetchTransHistory/:id', fetchTransHistory);
@@ -36,6 +38,7 @@ router.get('/fetchAllUsers', fetchAllUsers);
 router.patch('/hexPass', auth, hexPass);
 router.patch('/banUser/:id', banUser);
 router.patch('/unbanUser/:id', unbanUser)
+
 
 
 module.exports = router;

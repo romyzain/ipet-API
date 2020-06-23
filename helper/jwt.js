@@ -15,7 +15,6 @@ module.exports = {
 
                         })
                     }
-                    // console.log(decoded, 'hasil decrypt')
                     req.user = decoded;
                     next()
                 })

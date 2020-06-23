@@ -6,6 +6,7 @@ module.exports = {
 	getAllProducts: async (req, res) => {
 		// filter queries
 		let { search, minPrice, maxPrice, sortBy, category, offset } = req.query
+		if (search) search = search.replace(/'/g, '')
 		// get initial products with stock
 		let sql = `select 
 		p.id as productId, 
@@ -47,7 +48,7 @@ module.exports = {
 			where p.active = 1 `
 
 		if (search || minPrice || maxPrice) {
-			if (search) sql += ` and productName like '%${req.query.search}%'`
+			if (search) sql += ` and productName like '%${search}%'`
 			if (minPrice) sql += ` and price >= ${parseInt(minPrice)}`
 			if (maxPrice) sql += ` and price <= ${parseInt(maxPrice)}`
 		}
@@ -115,6 +116,8 @@ module.exports = {
 				})
 			}
 			let { productName, price, productDescription, invStock, appStock, category1, category2, category3 } = req.body
+			if (productName) productName = productName.replace(/'/g, "''")
+			if (productDescription) productDescription = productDescription.replace(/'/g, "''")
 			let sql = `insert into products (productName, price, productDescription) values ('${productName}', ${price}, '${productDescription}')`
 			try {
 				// add new product
@@ -124,7 +127,7 @@ module.exports = {
 				await query(sql)
 				// add 5 images to product_image
 				req.files = [req.files.image1, req.files.image2, req.files.image3, req.files.image4, req.files.image5]
-				for(const img of req.files){
+				for (const img of req.files) {
 					if (img) {
 						const imagePath = img ? `${path}/${img[0].filename}` : null
 						sql = `insert into product_image (imagePath, productId) values ('${imagePath}', ${insert.insertId})`
@@ -142,7 +145,7 @@ module.exports = {
 
 				// add categories to product_category
 				let category = [category1, category2, category3]
-				for(const val of category){
+				for (const val of category) {
 					if (val) {
 						sql = `insert into product_category (categoryId, productId) values (${val}, ${insert.insertId})`
 						try {
@@ -175,7 +178,7 @@ module.exports = {
 		try {
 			let results = await query(sql)
 			let oldImagePath = []
-			for(const image of results){
+			for (const image of results) {
 				oldImagePath.push(image.imagePath)
 			}
 			sql = `select * from product_category where productId = '${id}'`
@@ -198,7 +201,11 @@ module.exports = {
 					})
 				}
 				let { productName, price, productDescription, invStock, appStock, category1, category2, category3, deleteImageArr } = req.body
-				let sql = `update products set productName = '${productName}', price = ${parseInt(price)}, productDescription = '${productDescription}' where id = ${id};`
+				if (productName) productName = productName.replace(/'/g, "''")
+				if (productDescription) productDescription = productDescription.replace(/'/g, "''")
+				let sql = `update products set productName = '${productName}', price = ${parseInt(
+					price
+				)}, productDescription = '${productDescription}' where id = ${id};`
 				try {
 					// update product table
 					await query(sql)
@@ -207,7 +214,7 @@ module.exports = {
 					await query(sql)
 					// update product image
 					req.files = [req.files.image1, req.files.image2, req.files.image3, req.files.image4, req.files.image5]
-					for(const [i, img] of req.files.entries()){
+					for (const [i, img] of req.files.entries()) {
 						if (img) {
 							const imagePath = img ? `${path}/${img[0].filename}` : oldImagePath[i]
 							try {
@@ -233,7 +240,7 @@ module.exports = {
 					}
 					// update category table
 					let category = [parseInt(category1), parseInt(category2), parseInt(category3)]
-					for(const [i, val] of category.entries()){
+					for (const [i, val] of category.entries()) {
 						try {
 							if (val) {
 								if (categories[i] && val !== categories[i].categoryId) {
@@ -257,9 +264,8 @@ module.exports = {
 					}
 
 					// delete image
-					for(const[index, id] of deleteImageArr.entries()){
+					for (const [index, id] of deleteImageArr.entries()) {
 						if (id !== 'false') {
-							console.log('masuk delete', id)
 							db.query(`delete from product_image where id = ${id}`, (err, results) => {
 								if (err) {
 									return res.status(500).send({
@@ -292,7 +298,6 @@ module.exports = {
 		}
 	},
 	deleteProduct: async (req, res) => {
-
 		let sql = `update products set active = 0 where id = ${req.params.id}`
 		try {
 			await query(sql)
@@ -348,7 +353,9 @@ module.exports = {
 		}
 	},
 	addCategory: async (req, res) => {
-		let sql = `insert into category (category) values ('${req.body.category}')`
+		let { category } = req.body
+		if (category) category = category.replace(/'/g, "''")
+		let sql = `insert into category (category) values ('${category}')`
 		try {
 			let insert = await query(sql)
 			res.status(201).send({

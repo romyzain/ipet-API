@@ -70,6 +70,8 @@ const htmlToPdf = async (data) => {
 module.exports = {
 	getTransaction: async (req, res) => {
 		let { id, pending, reject, approval, username, maxDate, minDate, currentPage } = req.body
+		
+		if(username)username = username.replace(/'/g, '')
 		let condition = ''
 		if (id) {
 			condition = ` t.id = ${id}`
@@ -129,8 +131,6 @@ module.exports = {
 			// join pending transanction and cart
 			for (const [i, t] of transaction.entries()) {
 				t.date = moment(t.date).format('Do MMMM YYYY, HH:mm:ss')
-				// var date_test = new Date(t.date.replace(/-/g, '/'))
-				// console.log(date_test)
 				t.cart = []
 				for (const c of cart) {
 					if (t.transactionId === c.transactionId) t.cart.push(c)
@@ -162,6 +162,7 @@ module.exports = {
 		try {
 			let sql = ''
 			if (approve) {
+				data[0].date = moment().format('MMMM Do YYYY, h:mm:ss a')
 				for(const cartItem of data[0].cart){
 					let newStock = cartItem.invStock - cartItem.qty
 					sql = `update stock set invStock = '${newStock}' where productId = '${cartItem.productId}'`
@@ -181,7 +182,8 @@ module.exports = {
 					text: `iPet Receipt #${data[0].transactionId}`,
 				})
 			}
-			if (reject) {
+			if (reject) {	
+				if (data.message) data.message = data.message.replace(/'/g, "''")
 				sql = `update transaction set pending = 0, reject = 1, rejectMessage = '${data.message}' where id = ${transactionId}`
 			}
 			let insert = await query(sql)

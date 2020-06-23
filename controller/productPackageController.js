@@ -50,7 +50,9 @@ module.exports = {
 	},
 	searchProduct: async (req, res) => {
 		try {
-			let sql = `select p.id as productId, productName, price, invStock, appStock from products p join stock s on s.productId = p.id where p.active = 1 and productName like '%${req.query.search}%';`
+			let { seacrh } = req.query
+			if (seacrh) seacrh = seacrh.replace(/'/g, '')
+			let sql = `select p.id as productId, productName, price, invStock, appStock from products p join stock s on s.productId = p.id where p.active = 1 and productName like '%${search}%';`
 			let result = await query(sql)
 			res.status(200).send({
 				status: 'Success',
@@ -67,6 +69,7 @@ module.exports = {
 	},
 	addPackage: async (req, res) => {
 		const { title, data } = req.body
+		if (title) title = title.replace(/'/g, "''")
 		try {
 			let sql = `insert into parcel (parcelName) values ("${title}")`
 			let insert = await query(sql)
@@ -95,14 +98,11 @@ module.exports = {
 		}
 	},
 	editPackage: async (req, res) => {
-		const { title, data, parcelId } = req.body
-		console.log(title)
-		console.log(data)
-		console.log(parcelId)
+		let { title, data, parcelId } = req.body
 		try {
 			let sql = `select * from product_parcel where parcelId = ${parcelId}`
 			let toBeDeleted = await query(sql)
-			for (const data of toBeDeleted){
+			for (const data of toBeDeleted) {
 				try {
 					sql = `delete from product_parcel where id = ${data.id}`
 					await query(sql)
@@ -114,7 +114,7 @@ module.exports = {
 					})
 				}
 			}
-			for(const product of data){
+			for (const product of data) {
 				try {
 					sql = `insert into product_parcel (parcelId, productId, productQty) values (${parcelId}, ${product.productId}, ${parseInt(
 						product.productQty
@@ -129,6 +129,8 @@ module.exports = {
 				}
 			}
 			if (title) {
+				title = title.replace(/'/g, "''")
+				console.log(title)
 				sql = `update parcel set parcelName = '${title}' where id = ${parcelId}`
 				await query(sql)
 			}

@@ -6,7 +6,7 @@ const zeroify = (num) => {
 	return num < 10 ? `0${num}` : num
 }
 
-console.log(moment().format('YYYY-MM-DD h:mm:ss'))
+console.log(moment().format('MMMM Do YYYY, h:mm:ss a'))
 
 module.exports = {
 	getReport: async (req, res) => {
@@ -158,6 +158,7 @@ module.exports = {
 				return result
 			}
 
+			// dummy data for transaction
 			// for (i = 0; i < 20; i++) {
 			// 	const user = Math.ceil(Math.random() * 10)
 			// 	const date = Math.ceil(Math.random() * 30)
@@ -179,23 +180,43 @@ module.exports = {
 			// 	}
 			// }
 
-			const months = ['02', '03', '04', '05']
-			for (const month of months) {
-				console.log(month)
-				let randomTotal = randomTotalViews(800, 1300)
-				for (i = 0; i < randomTotal; i++) {
-					const user = Math.ceil(Math.random() * 10)
-					const date = Math.ceil(Math.random() * 28)
-					const hour = Math.ceil(Math.random() * 23)
-					const minute = Math.ceil(Math.random() * 59)
-					const second = Math.ceil(Math.random() * 59)
-					let sql = `INSERT INTO product_view (productId, userId, date) VALUES ('${randproduct(
-						46,
-						81
-					)}', '${user}', '2020-${month}-${zeroify(date)} ${zeroify(hour)}:${zeroify(minute)}:${zeroify(second)}');`
-					await query(sql)
-				}
+			//dummy data for product views
+			// const months = ['02', '03', '04', '05']
+			// for (const month of months) {
+			// 	console.log(month)
+			// 	let randomTotal = randomTotalViews(800, 1300)
+			// 	for (i = 0; i < randomTotal; i++) {
+			// 		const user = Math.ceil(Math.random() * 10)
+			// 		const date = Math.ceil(Math.random() * 28)
+			// 		const hour = Math.ceil(Math.random() * 23)
+			// 		const minute = Math.ceil(Math.random() * 59)
+			// 		const second = Math.ceil(Math.random() * 59)
+			// 		let sql = `INSERT INTO product_view (productId, userId, date) VALUES ('${randproduct(
+			// 			46,
+			// 			81
+			// 		)}', '${user}', '2020-${month}-${zeroify(date)} ${zeroify(hour)}:${zeroify(minute)}:${zeroify(second)}');`
+			// 		await query(sql)
+			// 	}
+			// }
+
+			//count totalPrice for transaction
+			let sql = `select ti.cartid, ti.transactionId, c.productId, qty, productName, price, invStock, appStock
+			from transaction_item ti 
+			join cart c on ti.cartId = c.id 
+			join products p on c.productId = p.id 
+			join stock s on s.productId = p.id
+			order by ti.id;`
+
+			let carts = await query(sql)
+			for(const cart of carts){
+				sql = `select * from transaction where id = ${cart.transactionId}`
+				let transaction = await query(sql)
+				let currentTotal = transaction[0].totalPrice
+				let newTotal = currentTotal + (cart.price * cart.qty)
+				sql = `update transaction set totalPrice = '${newTotal}' where id = ${cart.transactionId}`
+				await query(sql)
 			}
+
 			console.log('sukses!!!')
 		} catch (err) {
 			console.log(err)
