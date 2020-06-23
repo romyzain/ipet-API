@@ -368,4 +368,48 @@ module.exports = {
 			res.status(500).send(err.message)
 		}
 	},
+	addPhone : async(req,res) => {
+        let { phoneNumber, userId } = req.body;
+        let sql = `INSERT INTO phone_numbers (phoneNumber, userId) values("${phoneNumber}","${userId}")`;
+        try{
+            let respond = await db.query(sql);
+            res.status(200).send({
+                status : "created",
+                message : "Data has been created"
+            })
+        }
+        catch(err){
+            console.log(err)
+            res.status(500).send(err.message)
+        }
+    },
+    deletePhone : async(req,res) => {
+        let { id } = req.params;
+        let sql = `DELETE FROM phone_numbers WHERE id=${id}`;
+        try{
+            let respond = await db.query(sql);
+            res.status(201).send({
+                status : 'deleted',
+                message : 'Data Deleted!' 
+            })
+        }
+        catch(err){
+            res.status(500).send(err.message)
+        }
+    },
+    editPhone : async(req,res) => {
+        let { phoneNumber } = req.body;
+        let { id } = req.params;
+        let sql = `UPDATE phone_numbers set phoneNumber= '${phoneNumber}' WHERE id= ${id}`;
+        try{
+            let respond = await db.query(sql);
+            res.status(201).send({
+                status : 'edited',
+                message : 'Data Edited!' 
+            })
+        }
+        catch(err){
+            res.status(500).send(err.message)
+		}
+	}
 }
