@@ -50,8 +50,8 @@ module.exports = {
 	},
 	searchProduct: async (req, res) => {
 		try {
-			let { seacrh } = req.query
-			if (seacrh) seacrh = seacrh.replace(/'/g, '')
+			let { search } = req.query
+			if (search) search = search.replace(/'/g, '')
 			let sql = `select p.id as productId, productName, price, invStock, appStock from products p join stock s on s.productId = p.id where p.active = 1 and productName like '%${search}%';`
 			let result = await query(sql)
 			res.status(200).send({
@@ -68,7 +68,7 @@ module.exports = {
 		}
 	},
 	addPackage: async (req, res) => {
-		const { title, data } = req.body
+		let { title, data } = req.body
 		if (title) title = title.replace(/'/g, "''")
 		try {
 			let sql = `insert into parcel (parcelName) values ("${title}")`
@@ -130,7 +130,6 @@ module.exports = {
 			}
 			if (title) {
 				title = title.replace(/'/g, "''")
-				console.log(title)
 				sql = `update parcel set parcelName = '${title}' where id = ${parcelId}`
 				await query(sql)
 			}

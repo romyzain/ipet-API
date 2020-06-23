@@ -220,10 +220,10 @@ module.exports = {
 	fetchTransHistory: async (req, res) => {
 		try {
 			let { id } = req.params
-			let sql = `SELECT * FROM transaction WHERE userId= ${id}`
+			let sql = `SELECT * FROM transaction WHERE userId= ${id} order by date desc`
 			var users = await db.query(sql)
 			for (i = 0; i < users.length; i++) {
-				sql = `SELECT * FROM ipet.transaction_item iti JOIN cart c on iti.id = c.id JOIN products p ON p.id = c.productId WHERE transactionId = ${users[i].id}`
+				sql = `SELECT * FROM ipet.transaction_item iti JOIN cart c on iti.cartId = c.id JOIN products p ON p.id = c.productId WHERE transactionId = ${users[i].id}`
 				let cart = await db.query(sql)
 				users[i].products = cart
 				for (j = 0; j < users[i].products.length; j++) {

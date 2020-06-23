@@ -6,7 +6,7 @@ const zeroify = (num) => {
 	return num < 10 ? `0${num}` : num
 }
 
-console.log(moment().format('MMMM Do YYYY, h:mm:ss a'))
+console.log(moment().format('MMMM Do YYYY, HH:mm:ss'))
 
 module.exports = {
 	getReport: async (req, res) => {

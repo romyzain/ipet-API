@@ -220,8 +220,8 @@ module.exports = {
 	insertTransaction: async (req, res) => {
 		let { cart, userId, totalPrice, API_URL, username, email } = req.body
 		try {
-			let date = moment().format('YYYY-MM-DD h:mm:ss')
-			let dueDate = moment().add(1, 'day').format('YYYY-MM-DD h:mm:ss')
+			let date = moment().format('YYYY-MM-DD HH:mm:ss')
+			let dueDate = moment().add(1, 'day').format('YYYY-MM-DD HH:mm:ss')
 			let sql = `insert into transaction (userId, totalPrice, date) values ('${userId}', '${totalPrice}', '${date}')`
 			let result = await query(sql)
 			for (const cartItem of cart) {

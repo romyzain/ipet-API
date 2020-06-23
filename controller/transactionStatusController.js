@@ -22,7 +22,6 @@ const sendEmail = (obj) => {
 const puppeteer = require('puppeteer')
 const fs = require('fs-extra')
 const hbs = require('handlebars')
-const { min } = require('moment')
 // path di atas
 
 const compile = async (templateName, data) => {
@@ -162,7 +161,7 @@ module.exports = {
 		try {
 			let sql = ''
 			if (approve) {
-				data[0].date = moment().format('MMMM Do YYYY, h:mm:ss a')
+				data[0].date = moment().format('MMMM Do YYYY, HH:mm:ss')
 				for(const cartItem of data[0].cart){
 					let newStock = cartItem.invStock - cartItem.qty
 					sql = `update stock set invStock = '${newStock}' where productId = '${cartItem.productId}'`
