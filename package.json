@@ -12,7 +12,7 @@
     "bluebird": "^3.7.2",
     "cors": "^2.8.5",
     "email-templates": "^2.7.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-bearer-token": "^2.4.0",
     "fs-extra": "^9.0.1",
     "handlebars": "^4.7.6",
